@@ -365,43 +365,58 @@ export async function generateAssessment(
   }
 
   const prompt = buildPrompt(input)
-  onProgress?.("Sending request to OpenRouter API (" + env.OPENROUTER_MODEL + ")...")
+  const maxRetries = 3
+  const timeoutMs = 25000 // 25 seconds timeout per attempt
 
-  try {
-    const apiCallPromise = client.chat.completions.create({
-      model: env.OPENROUTER_MODEL,
-      messages: [
-        {
-          role: "system",
-          content: `You are an expert educator and exam paper creator.
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      const attemptMsg = attempt > 1 ? ` (Attempt ${attempt}/${maxRetries})` : ""
+      onProgress?.(`Sending request to OpenRouter API (${env.OPENROUTER_MODEL})${attemptMsg}...`)
+
+      const apiCallPromise = client.chat.completions.create({
+        model: env.OPENROUTER_MODEL,
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert educator and exam paper creator.
 You always return valid JSON and nothing else.
 Never include markdown formatting, code blocks, or explanatory text outside the JSON object.`
-        },
-        {
-          role: "user",
-          content: prompt
-        }
-      ],
-      temperature: 0.7
-    })
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        temperature: 0.7
+      })
 
-    const timeoutPromise = new Promise<never>((_, reject) =>
-      setTimeout(() => reject(new Error("OpenRouter API request timed out after 10 seconds")), 10000)
-    )
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error(`OpenRouter API request timed out after ${timeoutMs / 1000} seconds`)), timeoutMs)
+      )
 
-    const response = await Promise.race([apiCallPromise, timeoutPromise])
+      const response = await Promise.race([apiCallPromise, timeoutPromise])
 
-    const rawText = response.choices?.[0]?.message?.content || ""
-    onProgress?.("Parsing and validating AI response...")
+      const rawText = response.choices?.[0]?.message?.content || ""
+      onProgress?.("Parsing and validating AI response...")
 
-    const assessment = parseAndValidate(rawText, input)
-    onProgress?.("Validation complete")
-    return assessment
+      const assessment = parseAndValidate(rawText, input)
+      onProgress?.("Validation complete")
+      return assessment
 
-  } catch (err: any) {
-    console.error("OpenRouter API error:", err.message)
-    onProgress?.("API request failed. Falling back to mock generator...")
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    return generateMockAssessment(input)
+    } catch (err: any) {
+      console.error(`[AI Gen] Attempt ${attempt} failed: ${err.message}`)
+      
+      if (attempt < maxRetries) {
+        const delay = attempt * 2000 // Linear backoff: 2s, 4s
+        onProgress?.(`Attempt ${attempt} failed: ${err.message}. Retrying in ${delay / 1000}s...`)
+        await new Promise((resolve) => setTimeout(resolve, delay))
+      } else {
+        // Ultimate failure: log and throw the error (no mock fallback!)
+        onProgress?.(`All ${maxRetries} API attempts failed. Raising error...`)
+        throw new Error(`OpenRouter API generation failed after ${maxRetries} attempts. Last error: ${err.message}`)
+      }
+    }
   }
+
+  throw new Error("Unexpected end of retry loop")
 }
