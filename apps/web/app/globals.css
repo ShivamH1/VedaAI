@@ -1,50 +1,71 @@
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@import "tailwindcss";
+
+@theme {
+  --color-brand: #e05e35;
+  --color-brand-dark: #b8401b;
+  --color-brand-light: #fff5f2;
+  --color-brand-glow: rgba(224, 94, 53, 0.2);
+  
+  --color-main-bg: #ececee;
+  --color-sidebar-bg: #ffffff;
+  
+  --color-text-primary: #1a1a1e;
+  --color-text-secondary: #6e6e73;
+  --color-text-tertiary: #aeaeef;
+  
+  --color-border-subtle: #e2e2e7;
+  
+  --radius-custom-lg: 16px;
+  --radius-custom-xl: 24px;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+  }
+
+  body {
+    background-color: #ececee;
+    color: #1a1a1e;
+    font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  
+  /* Smooth scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.2);
   }
 }
 
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
+/* Custom premium visual features */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
+.shadow-premium {
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
 }
 
-* {
-  box-sizing: border-box;
-  padding: 0;
-  margin: 0;
+.shadow-card-hover {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.imgDark {
-  display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
-
-  .imgLight {
-    display: none;
-  }
-  .imgDark {
-    display: unset;
-  }
+.shadow-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.06);
 }

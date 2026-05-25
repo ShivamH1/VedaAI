@@ -9,9 +9,13 @@
     "check-types": "turbo run check-types"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.0",
+    "postcss": "^8.5.15",
     "prettier": "^3.7.4",
+    "tailwindcss": "^4.3.0",
     "turbo": "^2.9.14",
-    "typescript": "5.9.2"
+    "typescript": "5.9.2",
+    "web": "workspace:*"
   },
   "engines": {
     "node": ">=18"
@@ -20,5 +24,11 @@
   "workspaces": [
     "apps/*",
     "packages/*"
-  ]
+  ],
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "lucide-react": "^1.16.0",
+    "tailwind-merge": "^3.6.0",
+    "zustand": "^5.0.13"
+  }
 }
