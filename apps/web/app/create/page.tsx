@@ -4,16 +4,16 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 import { QuestionType } from "@/types";
-import { 
-  ArrowLeft, 
-  UploadCloud, 
-  Calendar, 
-  Plus, 
-  X, 
-  Mic, 
+import {
+  ArrowLeft,
+  UploadCloud,
+  Calendar,
+  Plus,
+  X,
+  Mic,
   ArrowRight,
   FileText,
-  Trash2
+  Trash2,
 } from "lucide-react";
 import Header from "@/components/layout/Header";
 import Sidebar from "@/components/layout/Sidebar";
@@ -33,11 +33,11 @@ export default function CreateAssignment() {
   const [error, setError] = useState<string | null>(null);
 
   // Form states
-  const [title, setTitle] = useState("Electricity Mid-Term Exam");
-  const [subject, setSubject] = useState("Physics");
-  const [topic, setTopic] = useState("Electric Current & Ohm's Law");
-  const [gradeLevel, setGradeLevel] = useState("Grade 10");
-  const [dueDate, setDueDate] = useState("2026-06-21");
+  const [title, setTitle] = useState("AI & Data Science");
+  const [subject, setSubject] = useState("Computer Science");
+  const [topic, setTopic] = useState("Machine Learning Basics");
+  const [gradeLevel, setGradeLevel] = useState("Grade 12");
+  const [dueDate, setDueDate] = useState("2026-07-10");
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -53,17 +53,23 @@ export default function CreateAssignment() {
 
   // Recalculated values
   const totalQuestions = rows.reduce((sum, r) => sum + r.count, 0);
-  const totalMarks = rows.reduce((sum, r) => sum + (r.count * r.marks), 0);
+  const totalMarks = rows.reduce((sum, r) => sum + r.count * r.marks, 0);
 
   // Question Type Label translation
   const getQuestionTypeLabel = (type: QuestionType) => {
     switch (type) {
-      case "mcq": return "Multiple Choice Questions";
-      case "short_answer": return "Short Questions";
-      case "long_answer": return "Diagram/Graph-Based Questions";
-      case "fill_blank": return "Numerical Problems";
-      case "true_false": return "True / False Questions";
-      default: return "Questions";
+      case "mcq":
+        return "Multiple Choice Questions";
+      case "short_answer":
+        return "Short Questions";
+      case "long_answer":
+        return "Diagram/Graph-Based Questions";
+      case "fill_blank":
+        return "Numerical Problems";
+      case "true_false":
+        return "True / False Questions";
+      default:
+        return "Questions";
     }
   };
 
@@ -77,27 +83,31 @@ export default function CreateAssignment() {
     setRows(rows.filter((r) => r.id !== id));
   };
 
-  const updateRow = (id: string, field: keyof QuestionTypeRow, value: QuestionTypeRow[keyof QuestionTypeRow]) => {
-    setRows(rows.map((r) => r.id === id ? { ...r, [field]: value } : r));
+  const updateRow = (
+    id: string,
+    field: keyof QuestionTypeRow,
+    value: QuestionTypeRow[keyof QuestionTypeRow],
+  ) => {
+    setRows(rows.map((r) => (r.id === id ? { ...r, [field]: value } : r)));
   };
 
   const incrementCount = (id: string) => {
-    const row = rows.find(r => r.id === id);
+    const row = rows.find((r) => r.id === id);
     if (row) updateRow(id, "count", row.count + 1);
   };
 
   const decrementCount = (id: string) => {
-    const row = rows.find(r => r.id === id);
+    const row = rows.find((r) => r.id === id);
     if (row && row.count > 1) updateRow(id, "count", row.count - 1);
   };
 
   const incrementMarks = (id: string) => {
-    const row = rows.find(r => r.id === id);
+    const row = rows.find((r) => r.id === id);
     if (row) updateRow(id, "marks", row.marks + 1);
   };
 
   const decrementMarks = (id: string) => {
-    const row = rows.find(r => r.id === id);
+    const row = rows.find((r) => r.id === id);
     if (row && row.marks > 1) updateRow(id, "marks", row.marks - 1);
   };
 
@@ -150,19 +160,22 @@ export default function CreateAssignment() {
       questionCount: r.count,
       marksPerQuestion: r.marks,
       instructions: `Attempt all ${getQuestionTypeLabel(r.type).toLowerCase()}.`,
-      difficultyMix: { easy: 34, medium: 33, hard: 33 }
+      difficultyMix: { easy: 34, medium: 33, hard: 33 },
     }));
 
     try {
-      const result = await api.createAssignment({
-        title,
-        subject,
-        topic,
-        gradeLevel,
-        dueDate,
-        sections,
-        additionalInstructions: additionalInfo
-      }, uploadedFile || undefined);
+      const result = await api.createAssignment(
+        {
+          title,
+          subject,
+          topic,
+          gradeLevel,
+          dueDate,
+          sections,
+          additionalInstructions: additionalInfo,
+        },
+        uploadedFile || undefined,
+      );
 
       router.push(`/assessment/${result.assignmentId}`);
     } catch (err: any) {
@@ -190,7 +203,7 @@ export default function CreateAssignment() {
               {error}
             </div>
           )}
-          
+
           {/* Mobile Back bar */}
           <div className="lg:hidden flex items-center gap-3 px-1 py-2">
             <button
@@ -216,54 +229,65 @@ export default function CreateAssignment() {
 
           {/* Main Card Content */}
           <div className="bg-white rounded-custom-xl border border-border-subtle shadow-premium p-6 md:p-8 flex flex-col gap-6">
-            
             {/* Title & Subtitle */}
             <div className="border-b border-border-subtle pb-4">
-              <h2 className="text-xl font-bold text-text-primary">Assignment Details</h2>
-              <p className="text-xs text-text-secondary mt-1">Basic information about your assignment</p>
+              <h2 className="text-xl font-bold text-text-primary">
+                Assignment Details
+              </h2>
+              <p className="text-xs text-text-secondary mt-1">
+                Basic information about your assignment
+              </p>
             </div>
 
             {/* Custom inputs for Metadata (Title, Subject, Topic, Grade) */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-text-primary">Assignment Title</label>
-                <input 
-                  type="text" 
-                  value={title} 
-                  onChange={(e) => setTitle(e.target.value)} 
-                  placeholder="e.g. Electric Current Quiz"
+                <label className="text-xs font-bold text-text-primary">
+                  Assignment Title
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Computer Scienc Quiz"
                   className="w-full px-4 py-2.5 bg-white border border-border-subtle rounded-xl text-sm placeholder-text-secondary focus:outline-none focus:border-brand"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-text-primary">Subject</label>
-                <input 
-                  type="text" 
-                  value={subject} 
-                  onChange={(e) => setSubject(e.target.value)} 
+                <label className="text-xs font-bold text-text-primary">
+                  Subject
+                </label>
+                <input
+                  type="text"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
                   placeholder="e.g. Physics"
                   className="w-full px-4 py-2.5 bg-white border border-border-subtle rounded-xl text-sm placeholder-text-secondary focus:outline-none focus:border-brand"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-text-primary">Topic / Syllabus</label>
-                <input 
-                  type="text" 
-                  value={topic} 
-                  onChange={(e) => setTopic(e.target.value)} 
+                <label className="text-xs font-bold text-text-primary">
+                  Topic / Syllabus
+                </label>
+                <input
+                  type="text"
+                  value={topic}
+                  onChange={(e) => setTopic(e.target.value)}
                   placeholder="e.g. Ohm's Law & Circuit Analysis"
                   className="w-full px-4 py-2.5 bg-white border border-border-subtle rounded-xl text-sm placeholder-text-secondary focus:outline-none focus:border-brand"
                 />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-text-primary">Grade / Class Level</label>
-                <input 
-                  type="text" 
-                  value={gradeLevel} 
-                  onChange={(e) => setGradeLevel(e.target.value)} 
+                <label className="text-xs font-bold text-text-primary">
+                  Grade / Class Level
+                </label>
+                <input
+                  type="text"
+                  value={gradeLevel}
+                  onChange={(e) => setGradeLevel(e.target.value)}
                   placeholder="e.g. Grade 10"
                   className="w-full px-4 py-2.5 bg-white border border-border-subtle rounded-xl text-sm placeholder-text-secondary focus:outline-none focus:border-brand"
                 />
@@ -271,33 +295,39 @@ export default function CreateAssignment() {
             </div>
 
             {/* File Upload Area */}
-            <div 
+            <div
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
               onClick={triggerBrowse}
               className={clsx(
                 "border-2 border-dashed rounded-custom-lg p-6 md:p-8 flex flex-col items-center justify-center gap-3 text-center cursor-pointer transition-all duration-200 select-none",
-                isDragOver ? "border-brand bg-brand-light" : "border-border-subtle hover:border-brand hover:bg-gray-50/50"
+                isDragOver
+                  ? "border-brand bg-brand-light"
+                  : "border-border-subtle hover:border-brand hover:bg-gray-50/50",
               )}
             >
-              <input 
-                type="file" 
-                ref={fileInputRef} 
-                onChange={handleFileChange} 
-                className="hidden" 
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={handleFileChange}
+                className="hidden"
                 accept=".pdf,.png,.jpg,.jpeg,.txt"
               />
-              
+
               {uploadedFile ? (
                 <div className="flex items-center gap-3 p-3 bg-brand-light border border-brand/20 rounded-xl max-w-full">
                   <FileText className="w-8 h-8 text-brand flex-shrink-0" />
                   <div className="flex flex-col text-left min-w-0">
-                    <span className="text-xs font-bold text-text-primary truncate">{uploadedFile.name}</span>
-                    <span className="text-[10px] text-text-secondary">{(uploadedFile.size / 1024 / 1024).toFixed(2)} MB</span>
+                    <span className="text-xs font-bold text-text-primary truncate">
+                      {uploadedFile.name}
+                    </span>
+                    <span className="text-[10px] text-text-secondary">
+                      {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                    </span>
                   </div>
-                  <button 
-                    onClick={clearUploadedFile} 
+                  <button
+                    onClick={clearUploadedFile}
                     className="p-1 rounded-full hover:bg-white text-text-secondary hover:text-red-500 transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -309,10 +339,14 @@ export default function CreateAssignment() {
                     <UploadCloud className="w-6 h-6" />
                   </div>
                   <div className="flex flex-col gap-1">
-                    <span className="text-sm font-bold text-text-primary">Choose a file or drag & drop it here</span>
-                    <span className="text-[10px] text-text-secondary">PDF, JPEG, PNG, upto 10MB</span>
+                    <span className="text-sm font-bold text-text-primary">
+                      Choose a file or drag & drop it here
+                    </span>
+                    <span className="text-[10px] text-text-secondary">
+                      PDF, JPEG, PNG, upto 10MB
+                    </span>
                   </div>
-                  <button 
+                  <button
                     type="button"
                     className="mt-1 px-4 py-2 bg-gray-50 hover:bg-gray-100 border border-border-subtle text-xs font-bold text-text-primary rounded-lg transition-colors"
                   >
@@ -321,16 +355,18 @@ export default function CreateAssignment() {
                 </>
               )}
             </div>
-            
+
             <p className="text-[10px] text-text-secondary text-center -mt-3 select-none">
               Upload images of your preferred document/image reference
             </p>
 
             {/* Due Date */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-text-primary">Due Date</label>
+              <label className="text-xs font-bold text-text-primary">
+                Due Date
+              </label>
               <div className="relative">
-                <input 
+                <input
                   type="date"
                   value={dueDate}
                   onChange={(e) => setDueDate(e.target.value)}
@@ -356,14 +392,24 @@ export default function CreateAssignment() {
                     <div className="flex items-center justify-between gap-2">
                       <select
                         value={row.type}
-                        onChange={(e) => updateRow(row.id, "type", e.target.value as QuestionType)}
+                        onChange={(e) =>
+                          updateRow(
+                            row.id,
+                            "type",
+                            e.target.value as QuestionType,
+                          )
+                        }
                         className="w-full bg-white border border-border-subtle rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-brand"
                       >
                         <option value="mcq">Multiple Choice Questions</option>
                         <option value="short_answer">Short Questions</option>
-                        <option value="long_answer">Diagram/Graph-Based Questions</option>
+                        <option value="long_answer">
+                          Diagram/Graph-Based Questions
+                        </option>
                         <option value="fill_blank">Numerical Problems</option>
-                        <option value="true_false">True / False Questions</option>
+                        <option value="true_false">
+                          True / False Questions
+                        </option>
                       </select>
                       <button
                         onClick={() => removeRow(row.id)}
@@ -378,16 +424,20 @@ export default function CreateAssignment() {
                     <div className="bg-[#f0f0f2]/60 rounded-xl p-3 grid grid-cols-2 gap-4">
                       {/* Left: No. of Questions */}
                       <div className="flex flex-col items-center gap-1.5">
-                        <span className="text-[10px] font-bold text-text-secondary">No. of Questions</span>
+                        <span className="text-[10px] font-bold text-text-secondary">
+                          No. of Questions
+                        </span>
                         <div className="flex items-center bg-white border border-border-subtle rounded-full px-2 py-0.5 w-full justify-between shadow-sm">
-                          <button 
+                          <button
                             onClick={() => decrementCount(row.id)}
                             className="w-7 h-7 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
                           >
                             -
                           </button>
-                          <span className="text-xs font-bold text-text-primary select-none">{row.count}</span>
-                          <button 
+                          <span className="text-xs font-bold text-text-primary select-none">
+                            {row.count}
+                          </span>
+                          <button
                             onClick={() => incrementCount(row.id)}
                             className="w-7 h-7 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
                           >
@@ -398,16 +448,20 @@ export default function CreateAssignment() {
 
                       {/* Right: Marks */}
                       <div className="flex flex-col items-center gap-1.5">
-                        <span className="text-[10px] font-bold text-text-secondary">Marks</span>
+                        <span className="text-[10px] font-bold text-text-secondary">
+                          Marks
+                        </span>
                         <div className="flex items-center bg-white border border-border-subtle rounded-full px-2 py-0.5 w-full justify-between shadow-sm">
-                          <button 
+                          <button
                             onClick={() => decrementMarks(row.id)}
                             className="w-7 h-7 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
                           >
                             -
                           </button>
-                          <span className="text-xs font-bold text-text-primary select-none">{row.marks}</span>
-                          <button 
+                          <span className="text-xs font-bold text-text-primary select-none">
+                            {row.marks}
+                          </span>
+                          <button
                             onClick={() => incrementMarks(row.id)}
                             className="w-7 h-7 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
                           >
@@ -431,28 +485,40 @@ export default function CreateAssignment() {
                       </button>
                       <select
                         value={row.type}
-                        onChange={(e) => updateRow(row.id, "type", e.target.value as QuestionType)}
+                        onChange={(e) =>
+                          updateRow(
+                            row.id,
+                            "type",
+                            e.target.value as QuestionType,
+                          )
+                        }
                         className="w-full bg-white border border-border-subtle rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-brand"
                       >
                         <option value="mcq">Multiple Choice Questions</option>
                         <option value="short_answer">Short Questions</option>
-                        <option value="long_answer">Diagram/Graph-Based Questions</option>
+                        <option value="long_answer">
+                          Diagram/Graph-Based Questions
+                        </option>
                         <option value="fill_blank">Numerical Problems</option>
-                        <option value="true_false">True / False Questions</option>
+                        <option value="true_false">
+                          True / False Questions
+                        </option>
                       </select>
                     </div>
 
                     {/* No. of Questions counter */}
                     <div className="col-span-2 flex items-center justify-center">
                       <div className="flex items-center bg-gray-50 border border-border-subtle rounded-full px-2.5 py-1">
-                        <button 
+                        <button
                           onClick={() => decrementCount(row.id)}
                           className="w-5 h-5 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
                         >
                           -
                         </button>
-                        <span className="w-7 text-center text-xs font-bold text-text-primary select-none">{row.count}</span>
-                        <button 
+                        <span className="w-7 text-center text-xs font-bold text-text-primary select-none">
+                          {row.count}
+                        </span>
+                        <button
                           onClick={() => incrementCount(row.id)}
                           className="w-5 h-5 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
                         >
@@ -464,14 +530,16 @@ export default function CreateAssignment() {
                     {/* Marks counter */}
                     <div className="col-span-3 flex items-center justify-center">
                       <div className="flex items-center bg-gray-50 border border-border-subtle rounded-full px-2.5 py-1">
-                        <button 
+                        <button
                           onClick={() => decrementMarks(row.id)}
                           className="w-5 h-5 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
                         >
                           -
                         </button>
-                        <span className="w-7 text-center text-xs font-bold text-text-primary select-none">{row.marks}</span>
-                        <button 
+                        <span className="w-7 text-center text-xs font-bold text-text-primary select-none">
+                          {row.marks}
+                        </span>
+                        <button
                           onClick={() => incrementMarks(row.id)}
                           className="w-5 h-5 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
                         >
@@ -499,17 +567,23 @@ export default function CreateAssignment() {
             <div className="flex flex-col gap-1.5 items-end justify-end border-t border-border-subtle pt-4 text-xs font-bold text-text-secondary select-none">
               <div>
                 <span>Total Questions : </span>
-                <span className="text-text-primary text-sm pl-1">{totalQuestions}</span>
+                <span className="text-text-primary text-sm pl-1">
+                  {totalQuestions}
+                </span>
               </div>
               <div>
                 <span>Total Marks : </span>
-                <span className="text-text-primary text-sm pl-1">{totalMarks}</span>
+                <span className="text-text-primary text-sm pl-1">
+                  {totalMarks}
+                </span>
               </div>
             </div>
 
             {/* Additional Information Voice/Text Input */}
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-text-primary">Additional Information (For better output)</label>
+              <label className="text-xs font-bold text-text-primary">
+                Additional Information (For better output)
+              </label>
               <div className="relative">
                 <textarea
                   value={additionalInfo}
@@ -526,7 +600,6 @@ export default function CreateAssignment() {
                 </button>
               </div>
             </div>
-
           </div>
         </main>
       </div>
