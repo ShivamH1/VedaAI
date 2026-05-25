@@ -329,72 +329,143 @@ export default function CreateAssignment() {
             </div>
 
             {/* Question Types List */}
-            <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-12 gap-4 text-xs font-bold text-text-secondary border-b border-border-subtle pb-2 select-none">
-                <div className="col-span-6 md:col-span-7">Question Type</div>
-                <div className="col-span-3 md:col-span-2 text-center">No. of Questions</div>
+            <div className="flex flex-col gap-4">
+              <div className="hidden md:grid grid-cols-12 gap-4 text-xs font-bold text-text-secondary border-b border-border-subtle pb-2 select-none">
+                <div className="col-span-7">Question Type</div>
+                <div className="col-span-2 text-center">No. of Questions</div>
                 <div className="col-span-3 text-center">Marks</div>
               </div>
 
               {rows.map((row) => (
-                <div key={row.id} className="grid grid-cols-12 gap-4 items-center">
-                  {/* Select Dropdown */}
-                  <div className="col-span-6 md:col-span-7 flex items-center gap-2">
-                    <button
-                      onClick={() => removeRow(row.id)}
-                      className="flex items-center justify-center p-1 rounded-md text-text-secondary hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
-                      title="Remove Row"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                    <select
-                      value={row.type}
-                      onChange={(e) => updateRow(row.id, "type", e.target.value as QuestionType)}
-                      className="w-full bg-white border border-border-subtle rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-brand"
-                    >
-                      <option value="mcq">Multiple Choice Questions</option>
-                      <option value="short_answer">Short Questions</option>
-                      <option value="long_answer">Diagram/Graph-Based Questions</option>
-                      <option value="fill_blank">Numerical Problems</option>
-                      <option value="true_false">True / False Questions</option>
-                    </select>
-                  </div>
+                <div key={row.id} className="w-full">
+                  {/* Mobile View: Card Layout */}
+                  <div className="md:hidden bg-white border border-border-subtle rounded-2xl p-4 flex flex-col gap-3.5 relative shadow-sm">
+                    {/* Card Header (Type & Close Button) */}
+                    <div className="flex items-center justify-between gap-2">
+                      <select
+                        value={row.type}
+                        onChange={(e) => updateRow(row.id, "type", e.target.value as QuestionType)}
+                        className="w-full bg-white border border-border-subtle rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-brand"
+                      >
+                        <option value="mcq">Multiple Choice Questions</option>
+                        <option value="short_answer">Short Questions</option>
+                        <option value="long_answer">Diagram/Graph-Based Questions</option>
+                        <option value="fill_blank">Numerical Problems</option>
+                        <option value="true_false">True / False Questions</option>
+                      </select>
+                      <button
+                        onClick={() => removeRow(row.id)}
+                        className="flex-shrink-0 flex items-center justify-center p-2 rounded-full text-text-secondary hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer border border-border-subtle"
+                        title="Remove Row"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
 
-                  {/* No. of Questions counter */}
-                  <div className="col-span-3 md:col-span-2 flex items-center justify-center">
-                    <div className="flex items-center bg-gray-50 border border-border-subtle rounded-full px-2.5 py-1">
-                      <button 
-                        onClick={() => decrementCount(row.id)}
-                        className="w-5 h-5 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
-                      >
-                        -
-                      </button>
-                      <span className="w-7 text-center text-xs font-bold text-text-primary select-none">{row.count}</span>
-                      <button 
-                        onClick={() => incrementCount(row.id)}
-                        className="w-5 h-5 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
-                      >
-                        +
-                      </button>
+                    {/* Card Body (Double counter row inside gray card) */}
+                    <div className="bg-[#f0f0f2]/60 rounded-xl p-3 grid grid-cols-2 gap-4">
+                      {/* Left: No. of Questions */}
+                      <div className="flex flex-col items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-text-secondary">No. of Questions</span>
+                        <div className="flex items-center bg-white border border-border-subtle rounded-full px-2 py-0.5 w-full justify-between shadow-sm">
+                          <button 
+                            onClick={() => decrementCount(row.id)}
+                            className="w-7 h-7 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
+                          >
+                            -
+                          </button>
+                          <span className="text-xs font-bold text-text-primary select-none">{row.count}</span>
+                          <button 
+                            onClick={() => incrementCount(row.id)}
+                            className="w-7 h-7 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Right: Marks */}
+                      <div className="flex flex-col items-center gap-1.5">
+                        <span className="text-[10px] font-bold text-text-secondary">Marks</span>
+                        <div className="flex items-center bg-white border border-border-subtle rounded-full px-2 py-0.5 w-full justify-between shadow-sm">
+                          <button 
+                            onClick={() => decrementMarks(row.id)}
+                            className="w-7 h-7 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
+                          >
+                            -
+                          </button>
+                          <span className="text-xs font-bold text-text-primary select-none">{row.marks}</span>
+                          <button 
+                            onClick={() => incrementMarks(row.id)}
+                            className="w-7 h-7 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
+                          >
+                            +
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Marks counter */}
-                  <div className="col-span-3 flex items-center justify-center">
-                    <div className="flex items-center bg-gray-50 border border-border-subtle rounded-full px-2.5 py-1">
-                      <button 
-                        onClick={() => decrementMarks(row.id)}
-                        className="w-5 h-5 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
+                  {/* Desktop View: Grid Layout */}
+                  <div className="hidden md:grid grid-cols-12 gap-4 items-center">
+                    {/* Select Dropdown */}
+                    <div className="col-span-7 flex items-center gap-2">
+                      <button
+                        onClick={() => removeRow(row.id)}
+                        className="flex items-center justify-center p-1 rounded-md text-text-secondary hover:bg-red-50 hover:text-red-500 transition-colors cursor-pointer"
+                        title="Remove Row"
                       >
-                        -
+                        <X className="w-3.5 h-3.5" />
                       </button>
-                      <span className="w-7 text-center text-xs font-bold text-text-primary select-none">{row.marks}</span>
-                      <button 
-                        onClick={() => incrementMarks(row.id)}
-                        className="w-5 h-5 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
+                      <select
+                        value={row.type}
+                        onChange={(e) => updateRow(row.id, "type", e.target.value as QuestionType)}
+                        className="w-full bg-white border border-border-subtle rounded-xl px-3 py-2 text-xs font-semibold focus:outline-none focus:border-brand"
                       >
-                        +
-                      </button>
+                        <option value="mcq">Multiple Choice Questions</option>
+                        <option value="short_answer">Short Questions</option>
+                        <option value="long_answer">Diagram/Graph-Based Questions</option>
+                        <option value="fill_blank">Numerical Problems</option>
+                        <option value="true_false">True / False Questions</option>
+                      </select>
+                    </div>
+
+                    {/* No. of Questions counter */}
+                    <div className="col-span-2 flex items-center justify-center">
+                      <div className="flex items-center bg-gray-50 border border-border-subtle rounded-full px-2.5 py-1">
+                        <button 
+                          onClick={() => decrementCount(row.id)}
+                          className="w-5 h-5 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
+                        >
+                          -
+                        </button>
+                        <span className="w-7 text-center text-xs font-bold text-text-primary select-none">{row.count}</span>
+                        <button 
+                          onClick={() => incrementCount(row.id)}
+                          className="w-5 h-5 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Marks counter */}
+                    <div className="col-span-3 flex items-center justify-center">
+                      <div className="flex items-center bg-gray-50 border border-border-subtle rounded-full px-2.5 py-1">
+                        <button 
+                          onClick={() => decrementMarks(row.id)}
+                          className="w-5 h-5 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
+                        >
+                          -
+                        </button>
+                        <span className="w-7 text-center text-xs font-bold text-text-primary select-none">{row.marks}</span>
+                        <button 
+                          onClick={() => incrementMarks(row.id)}
+                          className="w-5 h-5 flex items-center justify-center text-text-secondary hover:text-text-primary font-bold text-xs select-none cursor-pointer"
+                        >
+                          +
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
