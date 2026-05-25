@@ -1,159 +1,159 @@
-# Turborepo starter
+# VedaAI
 
-This Turborepo starter is maintained by the Turborepo core team.
+**AI-Powered Assessment Creator** — Generate structured question papers from natural language descriptions. Teachers fill out a form (subject, topic, question types, optional reference file upload), and an AI model generates a complete, well-formatted question paper in real time.
 
-## Using this example
+---
 
-Run the following command:
+## Architecture Overview
 
-```sh
-npx create-turbo@latest
+### System Layout
+
+```
+┌──────────────────────────────────────────────────────────┐
+│                   Next.js 16 Frontend                     │
+│  (apps/web)                                               │
+│  ┌──────────┐  ┌──────────────┐  ┌────────────────────┐  │
+│  │  Create   │  │  Generation  │  │  Assessment Result │  │
+│  │  Page     │  │  Progress    │  │  Page              │  │
+│  └────┬─────┘  └──────┬───────┘  └────────┬───────────┘  │
+│       │               │                   │              │
+│  ┌────▼───────────────▼───────────────────▼───────────┐  │
+│  │              Zustand Stores                         │  │
+│  │  (assignment.store.ts, generation.store.ts)         │  │
+│  └───────────────────────┬────────────────────────────┘  │
+│                          │                                │
+│  ┌───────────────────────▼────────────────────────────┐  │
+│  │              API Client (lib/api.ts)                │  │
+│  │         REST (fetch)  +  WebSocket (native)         │  │
+│  └──────┬──────────────────────────┬───────────────────┘  │
+└─────────┼──────────────────────────┼──────────────────────┘
+          │ REST (HTTP/JSON)         │ WS (real-time events)
+          │ POST /api/assignments    │ ws://host/ws?assignmentId=xxx
+          │ GET  /api/assessments/:id│
+          ▼                          ▼
+┌─────────────────────────────────────────────────────────┐
+│              Express + BullMQ Backend                    │
+│  (apps/api)                                              │
+│                                                          │
+│  ┌──────────┐   ┌───────────┐   ┌─────────────────────┐│
+│  │  Routes   │──▶│  Queue    │──▶│  Worker (background)││
+│  │          │   │  (BullMQ) │   │  (generation.worker)││
+│  └──────────┘   └───────────┘   └─────────┬───────────┘│
+│        │                                    │           │
+│        ▼                                    ▼           │
+│  ┌──────────┐   ┌───────────┐   ┌─────────────────────┐│
+│  │ Mongoose  │   │  Redis    │   │  AI Service          ││
+│  │ Models    │   │  Cache    │   │  (Gemini via OpenAI  ││
+│  │(MongoDB)  │   │  + Queue  │   │   compat + Mock)    ││
+│  └──────────┘   └───────────┘   └─────────────────────┘│
+│                                                          │
+│  ┌────────────────────────────────────────────────────┐ │
+│  │  WebSocket Service (room-based broadcast)          │ │
+│  └────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────┘
 ```
 
-## What's inside?
+### Request Flow
 
-This Turborepo includes the following packages/apps:
+1. **Teacher** fills the creation form in the Next.js frontend (subject, topic, sections with question types/counts/marks, optional PDF/image upload).
+2. **Frontend** sends `POST /api/assignments` with `FormData` (multipart JSON + optional file).
+3. **Express route** validates the payload with Zod, extracts text from any uploaded file (PDF via `pdf-parse`), saves an `Assignment` document to MongoDB, and enqueues a **BullMQ** job.
+4. **BullMQ worker** picks up the job asynchronously:
+   - Updates assignment status to `"generating"`
+   - Creates a pending `Assessment` record in MongoDB
+   - Broadcasts `generation_started` via WebSocket
+   - Calls the **AI service** (Gemini API via OpenAI-compatible client, or built-in mock fallback)
+   - Parses and validates the AI response (never renders raw LLM output — every field is typed and validated)
+   - Pads missing questions if the LLM returns fewer than requested
+   - Saves the completed assessment, updates assignment status to `"complete"`
+   - Broadcasts `generation_complete` via WebSocket
+5. **Frontend** receives WebSocket events in real time (Zustand store), shows a progress bar, then redirects to the result page.
+6. **Result page** fetches the generated assessment via `GET /api/assessments/:id` (answers are **stripped** by default; `?includeAnswers=true` for full data).
+7. Completed assessments are **Redis-cached** for 1 hour (two keys: with and without answers). Cache is invalidated on regeneration.
 
-### Apps and Packages
+### Key Design Decisions
 
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
+| Principle | Implementation |
+|---|---|
+| **No raw LLM output** | All AI responses go through `parseAndValidate()` — JSON parsing, field-level type checks, structural validation. Never rendered directly. |
+| **Resilience over failure** | If the LLM returns fewer questions than requested, the system **pads** with placeholder questions rather than failing. |
+| **Mock fallback** | If no API key is configured, `generateMockAssessment()` produces topic-aware mock questions. Enables development/demo without an AI API. |
+| **Security-by-default** | Answer keys are stripped from API responses unless `?includeAnswers=true` is explicitly set. |
+| **Background processing** | Assessment generation runs in a BullMQ worker — the HTTP response returns immediately with a `jobId`, and the frontend polls progress via WebSocket. |
+| **Retry with backoff** | AI service implements 3 retry attempts with exponential backoff (2s, 4s) and longer delay for rate limits (5s, 10s). 90s request timeout. |
+| **State recovery** | WebSocket connection replays current assignment state from the database on connect, preventing race conditions. |
 
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
+---
 
-### Utilities
+## Tech Stack
 
-This Turborepo has some additional tools already setup for you:
+| Layer | Technology |
+|---|---|
+| **Monorepo** | Turborepo + Bun workspaces |
+| **Frontend** | Next.js 16 (App Router), React 19, TypeScript |
+| **Styling** | Tailwind CSS v4 |
+| **State** | Zustand (client state) |
+| **Backend** | Express + TypeScript (via tsx) |
+| **Database** | MongoDB 7.0 + Mongoose |
+| **Queue** | BullMQ + Redis 7 |
+| **Cache** | Redis |
+| **AI** | Gemini API (OpenAI-compatible endpoint) + mock fallback |
+| **Real-time** | Native WebSocket (browser) + `ws` (server) |
+| **Validation** | Zod |
+| **File upload** | Multer (memory storage, 10MB limit) |
+| **PDF parsing** | pdf-parse |
 
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
+---
 
-### Build
+## Quick Start
 
-To build all apps and packages, run the following command:
+```bash
+# Prerequisites: Bun >= 1.3.4, Docker Desktop
 
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+# 1. Install dependencies
+bun install
 
-```sh
-cd my-turborepo
-turbo build
+# 2. Start MongoDB + Redis
+docker-compose up -d
+
+# 3. Configure environment
+cp .env.example apps/api/.env
+cp .env.example apps/web/.env.local
+# Edit apps/api/.env with your OpenRouter/Gemini API key
+
+# 4. Start development servers
+bun run dev
+# API: http://localhost:8000
+# Web: http://localhost:3000
 ```
 
-Without global `turbo`, use your package manager:
+[Full setup instructions →](./SETUP.md)
 
-```sh
-cd my-turborepo
-npx turbo build
-bun dlx turbo build
-bun exec turbo build
+---
+
+## Project Structure
+
 ```
-
-You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo build --filter=docs
+├── apps/
+│   ├── api/                  # Express backend
+│   │   └── src/
+│   │       ├── index.ts               # Entry point
+│   │       ├── lib/                   # DB, Redis, env
+│   │       ├── models/                # Mongoose schemas
+│   │       ├── queues/                # BullMQ queue
+│   │       ├── routes/                # REST endpoints
+│   │       ├── services/              # AI, PDF, WebSocket logic
+│   │       ├── types/                 # Shared TS types
+│   │       └── workers/               # BullMQ worker
+│   └── web/                   # Next.js frontend
+│       └── app/
+│           ├── page.tsx               # Dashboard
+│           ├── create/page.tsx        # Creation form
+│           └── assessment/[id]/       # Progress + result pages
+├── packages/
+│   ├── ui/                    # Shared React components
+│   ├── eslint-config/        # Shared ESLint configs
+│   └── typescript-config/    # Shared TSConfigs
+├── docker-compose.yml        # MongoDB + Redis
+└── .env.example              # Environment template
 ```
-
-Without global `turbo`:
-
-```sh
-npx turbo build --filter=docs
-bun exec turbo build --filter=docs
-bun exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo dev
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo dev
-bun exec turbo dev
-bun exec turbo dev
-```
-
-You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo dev --filter=web
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo dev --filter=web
-bun exec turbo dev --filter=web
-bun exec turbo dev --filter=web
-```
-
-### Remote Caching
-
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
-
-Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
-
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
-
-```sh
-cd my-turborepo
-turbo login
-```
-
-Without global `turbo`, use your package manager:
-
-```sh
-cd my-turborepo
-npx turbo login
-bun exec turbo login
-bun exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
-
-```sh
-turbo link
-```
-
-Without global `turbo`:
-
-```sh
-npx turbo link
-bun exec turbo link
-bun exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
-- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)
