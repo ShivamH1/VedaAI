@@ -1,8 +1,7 @@
 "use client";
 
-import { Bell, ArrowLeft, ChevronDown, RefreshCw, Trash } from "lucide-react";
+import { Bell, ArrowLeft, ChevronDown } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
-import { useAssignmentStore } from "@/store/assignment.store";
 
 interface HeaderProps {
   title?: string;
@@ -12,7 +11,6 @@ interface HeaderProps {
 export default function Header({ title = "Assignment", showBack = false }: HeaderProps) {
   const router = useRouter();
   const pathname = usePathname();
-  const { assignments, clearAssignments, resetToMockData } = useAssignmentStore();
 
   const handleBack = () => {
     if (pathname === "/create") {
@@ -50,30 +48,6 @@ export default function Header({ title = "Assignment", showBack = false }: Heade
 
       {/* Action panel & profile */}
       <div className="flex items-center gap-4">
-        {/* Quick Toggler for Demo evaluation */}
-        <div className="flex items-center gap-1.5 border border-border-subtle bg-gray-50/50 rounded-full px-3 py-1 text-[11px] font-medium text-text-secondary select-none">
-          <span className="mr-1">Demo State:</span>
-          {assignments.length > 0 ? (
-            <button
-              onClick={clearAssignments}
-              title="Switch to Empty State"
-              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-50 hover:bg-orange-100 text-brand transition-colors cursor-pointer"
-            >
-              <Trash className="w-2.5 h-2.5" />
-              <span>Make Empty</span>
-            </button>
-          ) : (
-            <button
-              onClick={resetToMockData}
-              title="Reset to Filled State"
-              className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 hover:bg-blue-100 text-blue-600 transition-colors cursor-pointer"
-            >
-              <RefreshCw className="w-2.5 h-2.5" />
-              <span>Load Mock Data</span>
-            </button>
-          )}
-        </div>
-
         {/* Notification Bell */}
         <button className="relative flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-50 border border-border-subtle transition-colors cursor-pointer">
           <Bell className="w-4.5 h-4.5 text-text-secondary" />

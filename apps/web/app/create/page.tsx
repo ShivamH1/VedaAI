@@ -2,7 +2,8 @@
 
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { useAssignmentStore, QuestionType, SectionConfig } from "@/store/assignment.store";
+import { api } from "@/lib/api";
+import { QuestionType } from "@/types";
 import { 
   ArrowLeft, 
   UploadCloud, 
@@ -28,7 +29,8 @@ interface QuestionTypeRow {
 
 export default function CreateAssignment() {
   const router = useRouter();
-  const addAssignment = useAssignmentStore((state) => state.addAssignment);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Form states
   const [title, setTitle] = useState("Electricity Mid-Term Exam");
@@ -133,14 +135,16 @@ export default function CreateAssignment() {
   };
 
   // Form submission
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!title || !subject || !topic) {
       alert("Please fill out the Title, Subject, and Topic fields.");
       return;
     }
 
-    const sections: SectionConfig[] = rows.map((r, index) => ({
-      id: r.id,
+    setIsSubmitting(true);
+    setError(null);
+
+    const sections = rows.map((r, index) => ({
       name: `Section ${String.fromCharCode(65 + index)}`,
       questionType: r.type,
       questionCount: r.count,
@@ -149,19 +153,22 @@ export default function CreateAssignment() {
       difficultyMix: { easy: 34, medium: 33, hard: 33 }
     }));
 
-    addAssignment({
-      title,
-      subject,
-      topic,
-      gradeLevel,
-      dueDate,
-      totalMarks,
-      sections,
-      additionalInstructions: additionalInfo,
-      fileName: uploadedFile?.name
-    });
+    try {
+      const result = await api.createAssignment({
+        title,
+        subject,
+        topic,
+        gradeLevel,
+        dueDate,
+        sections,
+        additionalInstructions: additionalInfo
+      }, uploadedFile || undefined);
 
-    router.push("/");
+      router.push(`/assessment/${result.assignmentId}`);
+    } catch (err: any) {
+      setError(err.message || "Failed to create assignment");
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -178,6 +185,11 @@ export default function CreateAssignment() {
 
         {/* Form Container */}
         <main className="flex-1 flex flex-col max-w-[840px] mx-auto w-full gap-5">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm font-medium">
+              {error}
+            </div>
+          )}
           
           {/* Mobile Back bar */}
           <div className="lg:hidden flex items-center gap-3 px-1 py-2">
@@ -531,10 +543,11 @@ export default function CreateAssignment() {
 
         <button
           onClick={handleSubmit}
-          className="flex items-center justify-center gap-2 px-6 py-3 bg-[#111115] hover:bg-[#212128] text-white font-bold text-xs rounded-full shadow-md transition-all cursor-pointer"
+          disabled={isSubmitting}
+          className="flex items-center justify-center gap-2 px-6 py-3 bg-[#111115] hover:bg-[#212128] text-white font-bold text-xs rounded-full shadow-md transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <span>Next</span>
-          <ArrowRight className="w-3.5 h-3.5" />
+          <span>{isSubmitting ? "Submitting..." : "Next"}</span>
+          {!isSubmitting && <ArrowRight className="w-3.5 h-3.5" />}
         </button>
       </footer>
 

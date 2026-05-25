@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
@@ -19,8 +19,12 @@ import {
 
 export default function Dashboard() {
   const router = useRouter();
-  const { assignments, deleteAssignment } = useAssignmentStore();
+  const { assignments, deleteAssignment, fetchAssignments, isLoading } = useAssignmentStore();
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    fetchAssignments();
+  }, [fetchAssignments]);
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -84,7 +88,14 @@ export default function Dashboard() {
 
         {/* Dynamic State Layout */}
         <main className="flex-1 flex flex-col min-w-0" onClick={() => setActiveDropdownId(null)}>
-          {assignments.length === 0 ? (
+          {isLoading ? (
+            <div className="flex-1 flex flex-col items-center justify-center bg-white rounded-custom-xl border border-border-subtle shadow-premium p-6 md:p-12 text-center min-h-[500px]">
+              <div className="flex flex-col items-center gap-3">
+                <div className="w-10 h-10 border-4 border-brand border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm font-semibold text-text-secondary">Loading assignments...</span>
+              </div>
+            </div>
+          ) : assignments.length === 0 ? (
             /* ========================================== */
             /*              1. EMPTY STATE                */
             /* ========================================== */
