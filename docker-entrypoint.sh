@@ -14,7 +14,7 @@ bun run start &
 API_PID=$!
 
 # Trap to kill both on exit
-trap "kill $NEXT_PID $API_PID 2>/dev/null; exit" SIGINT SIGTERM
+trap "kill $NEXT_PID $API_PID 2>/dev/null; exit" INT TERM
 
 # Wait for either to exit
 wait $API_PID
