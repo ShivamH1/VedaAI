@@ -33,11 +33,11 @@ export default function CreateAssignment() {
   const [error, setError] = useState<string | null>(null);
 
   // Form states
-  const [title, setTitle] = useState("AI & Data Science");
-  const [subject, setSubject] = useState("Computer Science");
-  const [topic, setTopic] = useState("Machine Learning Basics");
-  const [gradeLevel, setGradeLevel] = useState("Grade 12");
-  const [dueDate, setDueDate] = useState("2026-07-10");
+  const [title, setTitle] = useState("");
+  const [subject, setSubject] = useState("");
+  const [topic, setTopic] = useState("");
+  const [gradeLevel, setGradeLevel] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const [additionalInfo, setAdditionalInfo] = useState("");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
