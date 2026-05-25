@@ -13,10 +13,6 @@ import type {
 const client = new OpenAI({
   apiKey: env.OPENROUTER_API_KEY || "dummy",
   baseURL: "https://generativelanguage.googleapis.com/v1beta/openai/",
-  defaultHeaders: {
-    "HTTP-Referer": "http://localhost:3000",
-    "X-Title": "VedaAI Assessment Creator",
-  },
 });
 
 // Check if we are running in mock fallback mode
@@ -437,7 +433,7 @@ export async function generateAssessment(
 
   const prompt = buildPrompt(input);
   const maxRetries = 3;
-  const timeoutMs = 25000; // 25 seconds timeout per attempt
+  const timeoutMs = 90000; // 90 seconds timeout per attempt
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
