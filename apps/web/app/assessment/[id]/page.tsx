@@ -5,27 +5,27 @@ import { useRouter } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import MobileFooterNav from "@/components/layout/MobileFooterNav";
-import { Loader2, Sparkles, CheckCircle2 } from "lucide-react";
+import { Sparkles, CheckCircle2 } from "lucide-react";
 import { clsx } from "clsx";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+const steps = [
+  { threshold: 0, msg: "Connecting to VedaAI Generation Server..." },
+  { threshold: 20, msg: "Analyzing uploaded material and syllabus..." },
+  { threshold: 45, msg: "Generating Section A: Multiple Choice Questions..." },
+  { threshold: 70, msg: "Generating Section B: Short Questions..." },
+  { threshold: 90, msg: "Formulating Answer Keys & Guidelines..." },
+  { threshold: 100, msg: "Assessment generation complete! Redirecting..." }
+];
+
 export default function AssessmentGenerationProgress({ params }: PageProps) {
   const router = useRouter();
   const { id } = use(params);
   const [progress, setProgress] = useState(0);
   const [statusMessage, setStatusMessage] = useState("Connecting to VedaAI Generation Server...");
-
-  const steps = [
-    { threshold: 0, msg: "Connecting to VedaAI Generation Server..." },
-    { threshold: 20, msg: "Analyzing uploaded material and syllabus..." },
-    { threshold: 45, msg: "Generating Section A: Multiple Choice Questions..." },
-    { threshold: 70, msg: "Generating Section B: Short Questions..." },
-    { threshold: 90, msg: "Formulating Answer Keys & Guidelines..." },
-    { threshold: 100, msg: "Assessment generation complete! Redirecting..." }
-  ];
 
   useEffect(() => {
     const duration = 4000; // 4 seconds total

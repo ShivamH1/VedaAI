@@ -1,13 +1,12 @@
 "use client";
 
-import { use, useState } from "react";
+import { use } from "react";
 import { useRouter } from "next/navigation";
-import { useAssignmentStore, Assignment, QuestionType } from "@/store/assignment.store";
+import { useAssignmentStore, QuestionType } from "@/store/assignment.store";
 import Sidebar from "@/components/layout/Sidebar";
 import Header from "@/components/layout/Header";
 import MobileFooterNav from "@/components/layout/MobileFooterNav";
-import { ArrowLeft, Download, FileText, CheckCircle2 } from "lucide-react";
-import { clsx } from "clsx";
+import { ArrowLeft, Download } from "lucide-react";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -282,7 +281,7 @@ export default function AssessmentResult({ params }: PageProps) {
               // Render custom sections dynamically configured by the teacher
               <div className="flex flex-col gap-8">
                 {assignment.sections.map((section, sIdx) => {
-                  const { questions, answerKey } = generateQuestionsForSection(
+                  const { questions } = generateQuestionsForSection(
                     section.questionType, 
                     section.questionCount, 
                     section.marksPerQuestion

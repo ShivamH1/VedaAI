@@ -75,7 +75,7 @@ export default function CreateAssignment() {
     setRows(rows.filter((r) => r.id !== id));
   };
 
-  const updateRow = (id: string, field: keyof QuestionTypeRow, value: any) => {
+  const updateRow = (id: string, field: keyof QuestionTypeRow, value: QuestionTypeRow[keyof QuestionTypeRow]) => {
     setRows(rows.map((r) => r.id === id ? { ...r, [field]: value } : r));
   };
 

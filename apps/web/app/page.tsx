@@ -7,7 +7,6 @@ import Header from "@/components/layout/Header";
 import MobileFooterNav from "@/components/layout/MobileFooterNav";
 import { useAssignmentStore } from "@/store/assignment.store";
 import { 
-  FileText, 
   Search, 
   SlidersHorizontal, 
   Plus, 
@@ -17,7 +16,6 @@ import {
   Menu, 
   Bell 
 } from "lucide-react";
-import { clsx } from "clsx";
 
 export default function Dashboard() {
   const router = useRouter();
